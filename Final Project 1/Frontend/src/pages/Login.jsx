@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Mail, Lock } from 'lucide-react';
-import axios from 'axios';
+
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,22 +14,17 @@ export default function Login() {
   const { login } = useAuth(); // AuthContext login
   const navigate = useNavigate();
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+  const API_BASE_URL = 'http://localhost:4000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
+  
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
-
-      // Store user + token correctly
-      login(res.data.user, res.data.token);
-
-      navigate('/dashboard');
+      await login(email, password); 
+      navigate('/dashboard');     
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);

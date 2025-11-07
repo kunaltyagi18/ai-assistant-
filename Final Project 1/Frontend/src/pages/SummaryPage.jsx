@@ -19,12 +19,15 @@ export default function Summary() {
   useEffect(() => {
     const fetchSummary = async () => {
       if (!fileName) return;
+      const token = localStorage.getItem('token');
       try {
         setLoading(true);
-        const res = await axios.post(
-          `${process.env.VITE_API_BASE_UR}/api/summary`,
-          { fileName }
-        );
+        const res = await axios.get("http://localhost:4000/api/summary", {
+          params: { fileName },
+          headers: {
+            Authorization: token ,
+          }
+        });
         setSummary(res.data.data || 'No summary available.');
       } catch (err) {
         console.error('Summary fetch error:', err);

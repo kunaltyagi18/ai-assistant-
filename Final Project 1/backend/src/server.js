@@ -52,6 +52,7 @@ import summaryRoutes from "./routes/summaryRoutes.js";
 import quizzesRoutes from "./routes/quizzesRoutes.js";
 
 // ✅ Mount Routes
+
 app.use("/api/gemini", geminiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/file", fileRoutes);

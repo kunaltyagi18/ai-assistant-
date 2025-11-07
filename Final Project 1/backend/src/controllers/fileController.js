@@ -1,20 +1,19 @@
 import File from "../models/File.js";
 import path from "path";
 import fs from "fs";
+import pdf from "pdf-parse-new"
 
-// ✅ Upload a file
 export const uploadFile = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
-
     const { originalname, filename, mimetype, size, path: filePath } = req.file;
 
-    // Normalize file path
+   
     const normalizedPath = path.resolve(filePath);
 
-    // Save file metadata in MongoDB
+   
     const file = await File.create({
       userId: req.user?._id || null,
       fileName: originalname,
@@ -24,7 +23,7 @@ export const uploadFile = async (req, res) => {
       uploadedAt: new Date(),
     });
 
-    // Response to frontend
+    
     res.status(201).json({
       success: true,
       message: "File uploaded successfully!",
@@ -33,7 +32,7 @@ export const uploadFile = async (req, res) => {
         name: originalname,
         type: mimetype,
         size,
-        url: `/uploads/${filename}`, // accessible URL for frontend
+        url: `/uploads/${filename}`, 
       },
     });
   } catch (error) {
@@ -46,7 +45,7 @@ export const uploadFile = async (req, res) => {
   }
 };
 
-// ✅ Get / Download or view uploaded file
+
 export const getFile = async (req, res) => {
   try {
     const { id } = req.params;
@@ -62,11 +61,23 @@ export const getFile = async (req, res) => {
       return res.status(404).json({ success: false, message: "File not found on server" });
     }
 
-    // Set proper headers
-    res.setHeader("Content-Type", file.fileType);
+    const fileBuffer = fs.readFileSync(filePath);
+    const data = await pdf(fileBuffer);
 
-    // Stream file to frontend
-    fs.createReadStream(filePath).pipe(res);
+   
+    let cleanText = data.text
+      .replace(/\n{2,}/g, "\n")       
+      .replace(/[ \t]{2,}/g, " ")      
+      .replace(/\s+$/, "")            
+      .trim();                        
+
+    res.json({
+      success: true,
+      fileName: file.fileName,
+      fileType: file.fileType,
+      text: cleanText, 
+    });
+
   } catch (error) {
     console.error("❌ File Retrieval Error:", error);
     res.status(500).json({
@@ -76,3 +87,5 @@ export const getFile = async (req, res) => {
     });
   }
 };
+
+

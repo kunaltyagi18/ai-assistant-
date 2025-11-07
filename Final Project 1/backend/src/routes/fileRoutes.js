@@ -30,7 +30,7 @@ const upload = multer({ storage });
 router.post("/upload", protect, upload.single("file"), uploadFile);
 
 // ✅ Get a file by ID (protected)
-router.get("/:id", protect, getFile);
+router.get("/:id", getFile);
 
 // ✅ Future routes: list all files, delete file, etc.
 // router.get("/", protect, listFiles);

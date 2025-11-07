@@ -3,8 +3,11 @@ import { geminiModel } from "../utils/geminiClient.js";
 
 // ✨ Generate Summary using Gemini AI
 export const generateSummary = async (req, res) => {
+  console.log("inside generate summary")
   try {
-    const { text } = req.body;
+    console.log("req is ",req.body.fileId)
+    const file = req.body.fileId;
+    console.log("file is sexxyyyyy :::::::::::::::::" ,file)
 
     if (!text || text.trim() === "") {
       return res.status(400).json({ success: false, message: "Text is required to generate summary." });

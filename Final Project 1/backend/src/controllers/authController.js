@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 // ✅ Utility: Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id }, "chut", { expiresIn: "7d" });
 };
 
 // ✅ Register Controller
@@ -49,9 +49,10 @@ export const register = async (req, res) => {
 
 // ✅ Login Controller
 export const login = async (req, res) => {
+  console.log("Inside login")
   try {
     const { email, password } = req.body;
-
+    console.log(email , password)
     if (!email || !password) {
       return res.status(400).json({ success: false, message: "Email and password are required" });
     }
@@ -65,7 +66,7 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
-
+    
     res.status(200).json({
       success: true,
       message: "Login successful",
