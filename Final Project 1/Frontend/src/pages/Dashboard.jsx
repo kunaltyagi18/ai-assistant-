@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 export default function Dashboard() {
-  const { user, token } = useAuth(); // Ensure token is provided from AuthContext
+  const { user, token } = useAuth(); 
   const [imagePrompt, setImagePrompt] = useState('');
   const [generatedImages, setGeneratedImages] = useState([]);
   const [stats, setStats] = useState({
@@ -19,11 +19,10 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(false);
 
-  // Fetch user stats from backend
   const fetchStats = async () => {
     try {
       const res = await axios.get('/api/summary/stats', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token },
       });
       setStats({
         uploads: res.data.totalUploads || 0,
@@ -36,59 +35,64 @@ export default function Dashboard() {
     }
   };
 
-  // Call API to upload file
-  const handleGenerate = async (type, file) => {
+  const  handleGenerate = async (type, file) => {
+    console.log("type is :::::: ", type)
     if (!file) return;
+    console.log(file)
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      const uploadRes = await axios.post('/api/file/upload', formData, {
+      const uploadRes = await axios.post('http://localhost:4000/api/file/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
+          Authorization: token,
         },
       });
 
-      const fileId = uploadRes.data.file.id;
+      const fileId = uploadRes.data.data.id;
+      
+    
 
       if (type === 'summary') {
-        await axios.post(
-          '/api/ai/summary',
+        alert("generating summary")
+        const res = await axios.get(
+          `http://localhost:4000/api/file/${fileId}`,
           { fileId },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: token } }
         );
+       
+        const dataToGiveGemini = res.data.text; ;
+        
+
       } else if (type === 'quiz') {
         await axios.post(
           '/api/quizzes',
           { fileId },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: token } }
         );
       } else if (type === 'both') {
         await axios.post(
           '/api/ai/summary',
           { fileId },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: token } }
         );
         await axios.post(
           '/api/quizzes',
           { fileId },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: token } }
         );
       }
 
-      fetchStats(); // refresh stats
-      alert(`${type} generated successfully!`);
+      fetchStats();
     } catch (err) {
       console.error('Generation error:', err);
-      alert('Failed to generate. Check console.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate image via backend Gemini API
   const handleGenerateImage = async () => {
     if (!imagePrompt) return;
     setLoading(true);
@@ -96,15 +100,14 @@ export default function Dashboard() {
       const res = await axios.post(
         '/api/gemini/ask',
         { prompt: imagePrompt },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: token } }
       );
 
-      // Backend should return an array of image URLs
       setGeneratedImages(res.data.images || []);
-      fetchStats(); // update stats count
+      fetchStats();
     } catch (err) {
       console.error('Image generation error:', err);
-      alert('Failed to generate image. Check console.');
+      alert('Failed to generate image.');
     } finally {
       setLoading(false);
     }
@@ -127,7 +130,6 @@ export default function Dashboard() {
           <p className="text-gray-600">Let's make learning easier and more fun today!</p>
         </motion.div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {statList.map((stat, index) => (
             <motion.div
@@ -150,7 +152,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* File Upload & AI Image Generator */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
             <FileUpload onGenerate={handleGenerate} />
